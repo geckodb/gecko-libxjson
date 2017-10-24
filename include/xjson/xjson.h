@@ -44,16 +44,19 @@ extern "C" {
 
 typedef enum
 {
-    xjson_status_ok,
-    xjson_status_failed,
+    xjson_status_ok             = 1,
+    xjson_status_true           = 1,
+    xjson_status_false          = 0,
+    xjson_status_failed         = 0,
     xjson_status_malloc_err,
     xjson_status_pmalloc_err,
     xjson_status_realloc_err,
-    xjson_status_nullptr,
+    xjson_status_nullptr        = 2,
     xjson_status_notype,
     xjson_status_interalerr,
     xjson_status_wrongusage,
-    xjson_status_nopool
+    xjson_status_nopool,
+    xjson_status_eof            = 0
 }                                     xjson_status_e;
 
 typedef long long                     xjson_s64_t;

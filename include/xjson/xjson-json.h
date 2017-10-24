@@ -59,6 +59,9 @@ extern "C" {
 #ifndef XJSON_POOL_UNNAMED_ENTRY_VECTORS_CAPACITY
     #define XJSON_POOL_UNNAMED_ENTRY_VECTORS_CAPACITY       XJSON_DEFAULT_CAPACITY_VALUE
 #endif
+#ifndef XJSON_POOL_ELEMENTS_CAPACITY
+    #define XJSON_POOL_ELEMENTS_CAPACITY                    XJSON_DEFAULT_CAPACITY_VALUE
+#endif
 
 
 #ifndef XJSON_JSON_ENTRIES_CAPACITY
@@ -75,6 +78,7 @@ extern "C" {
 typedef enum
 {
     xjson_none,
+
     xjson_object,
     xjson_array,
 
@@ -92,7 +96,7 @@ typedef enum
 
 typedef struct xjson_pool_t           xjson_pool_t;
 
-typedef struct xjson_json_t           xjson_json_t;
+typedef struct xjson_object_t           xjson_object_t;
 
 typedef struct xjson_array_t          xjson_array_t;
 
@@ -100,42 +104,54 @@ typedef struct xjson_unnamed_entry_t  xjson_unnamed_entry_t;
 
 typedef struct xjson_named_entry_t    xjson_named_entry_t;
 
+typedef struct xjson_element_t        xjson_element_t;
+
 typedef struct xjson_value_t          xjson_value_t;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-xjson_status_e  xjson_pool_create(xjson_pool_t **pool);
+xjson_status_e xjson_pool_create(xjson_pool_t **pool);
 
-xjson_status_e  xjson_pool_dispose(xjson_pool_t *pool);
+xjson_status_e xjson_pool_dispose(xjson_pool_t *pool);
 
-xjson_status_e  xjson_json_create(xjson_json_t **json, xjson_pool_t *pool);
+xjson_status_e xjson_json_create(xjson_object_t **json, xjson_pool_t *pool);
 
-xjson_status_e  xjson_json_parse(xjson_json_t **json, const char *text);
+xjson_status_e xjson_json_parse(xjson_object_t **json, const char *text);
 
-xjson_status_e  xjson_json_print(FILE *file, const xjson_json_t *json);
+xjson_status_e xjson_json_print(FILE *file, const xjson_object_t *json);
 
-xjson_status_e  xjson_json_add_property(xjson_json_t *parent, xjson_type_e type, const char *key, const void *data);
+xjson_status_e xjson_json_add_property(xjson_object_t *parent, xjson_type_e type, const char *key, const void *data);
 
-xjson_status_e  xjson_json_add_object(xjson_json_t **object, xjson_json_t *parent, const char *key);
+xjson_status_e xjson_json_add_object(xjson_object_t **object, xjson_object_t *parent, const char *key);
 
-xjson_status_e  xjson_json_add_array(xjson_array_t **array, xjson_json_t *parent, xjson_type_e type, const char *key);
+xjson_status_e xjson_json_add_array(xjson_array_t **array, xjson_object_t *parent, xjson_type_e type, const char *key);
 
-xjson_status_e  xjson_array_add_value(xjson_array_t *parent, const void *data);
+xjson_status_e xjson_array_add_value(xjson_array_t *parent, const void *data);
 
-xjson_status_e  xjson_array_add_object(xjson_json_t **object, xjson_array_t *parent);
+xjson_status_e xjson_array_add_object(xjson_object_t **object, xjson_array_t *parent);
 
-xjson_status_e  xjson_array_add_array(xjson_array_t **array, xjson_type_e type, xjson_array_t *parent);
+xjson_status_e xjson_array_add_array(xjson_array_t **array, xjson_type_e type, xjson_array_t *parent);
 
+xjson_status_e xjson_array_print(FILE *file, const xjson_array_t *array);
 
+xjson_status_e xjson_scan(xjson_element_t **element, const xjson_object_t *object);
+
+xjson_status_e xjson_element_has_key(xjson_element_t *element);
+
+xjson_status_e xjson_element_get(const char **key, const xjson_value_t **value, xjson_element_t *element);
+
+xjson_status_e xjson_value_get_type(xjson_type_e *type, const xjson_value_t *value);
+
+const char *xjson_type_str(const xjson_type_e type);
 
 /*
 
 
-xjson_status_e  xjson_json_remove(xjson_json_t *json, const xjson_named_entry_t *entry);
+xjson_status_e  xjson_json_remove(xjson_object_t *json, const xjson_named_entry_t *entry);
 
-xjson_status_e  xjson_json_query(xjson_json_cursor_t **cursor, const xjson_json_t *json,
+xjson_status_e  xjson_json_query(xjson_json_cursor_t **cursor, const xjson_object_t *json,
                                  const void *capture, xjson_entry_pred_t pred);
 
 xjson_status_e  xjson_query_next(xjson_json_cursor_t *cursor);
@@ -148,7 +164,7 @@ xjson_status_e  xjson_query_length(xjson_size_t **length, const xjson_json_curso
 
 xjson_status_e  xjson_query_value_get_type(xjson_type_e *type, xjson_json_cursor_t *cursor);
 
-xjson_status_e  xjson_query_get_context(xjson_json_t **context, const xjson_named_entry_t *entry);
+xjson_status_e  xjson_query_get_context(xjson_object_t **context, const xjson_named_entry_t *entry);
 
 xjson_status_e  xjson_query_get_key(const char **key, const xjson_named_entry_t *entry);
 
@@ -160,7 +176,7 @@ xjson_status_e  xjson_query_has_value(const xjson_named_entry_t *entry);
 
 xjson_status_e  xjson_query_get_index(xjson_size_t **idx, const xjson_named_entry_t *entry);
 
-xjson_status_e  xjson_query_value_get_object(xjson_json_t **value, const xjson_named_entry_t *entry);
+xjson_status_e  xjson_query_value_get_object(xjson_object_t **value, const xjson_named_entry_t *entry);
 
 xjson_status_e  xjson_query_value_get_array(xjson_array_t **value, const xjson_named_entry_t *entry);
 
@@ -176,7 +192,7 @@ xjson_status_e  xjson_query_value_get_number_boolean(xjson_bool_t **value, const
 
 xjson_status_e  xjson_entry_get_type(xjson_type_e *type, const xjson_named_entry_t *entry);
 
-xjson_status_e  xjson_entry_get_context(xjson_json_t **context, const xjson_named_entry_t *entry);
+xjson_status_e  xjson_entry_get_context(xjson_object_t **context, const xjson_named_entry_t *entry);
 
 xjson_status_e  xjson_entry_get_key(const char **key, const xjson_named_entry_t *entry);
 
@@ -186,7 +202,7 @@ xjson_status_e  xjson_entry_is_none(const xjson_named_entry_t *entry);
 
 xjson_status_e  xjson_entry_has_value(const xjson_named_entry_t *entry);
 
-xjson_status_e  xjson_entry_value_get_object(xjson_json_t **value, const xjson_named_entry_t *entry);
+xjson_status_e  xjson_entry_value_get_object(xjson_object_t **value, const xjson_named_entry_t *entry);
 
 xjson_status_e  xjson_entry_value_get_array(xjson_array_t **value, const xjson_named_entry_t *entry);
 

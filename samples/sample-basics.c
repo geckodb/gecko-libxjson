@@ -28,7 +28,7 @@
 int main(int argc, char* argv[])
 {
     xjson_pool_t *pool;
-    xjson_json_t *document, *source, *it, *jigsaw, *actors_skarsgard, *actors_lieberher, *actors_bell, *actors_passmore;
+    xjson_object_t *document, *source, *it, *jigsaw, *actors_skarsgard, *actors_lieberher, *actors_bell, *actors_passmore;
     xjson_array_t *movies, *it_actors, *it_keywords, *jigsaw_actors, *jigsaw_keywords;
 
     xjson_pool_create(&pool);
@@ -53,8 +53,8 @@ int main(int argc, char* argv[])
     xjson_array_add_value(it_keywords, "balloon");
     xjson_array_add_value(it_keywords, "fear");
             xjson_json_add_property(it, xjson_null, "poster_url", NULL);
-            xjson_json_add_property(it, xjson_null, "reviews", &(xjson_u64_t){928});
-            xjson_json_add_property(it, xjson_null, "rating", &(xjson_double_t){7.8});
+            xjson_json_add_property(it, xjson_number_integer, "reviews", &(xjson_u64_t){928});
+            xjson_json_add_property(it, xjson_number_double, "rating", &(xjson_double_t){7.8});
         xjson_array_add_object(&jigsaw, movies);
             xjson_json_add_property(jigsaw, xjson_string, "title", "Jigsaw (2017)");
             xjson_json_add_array(&jigsaw_actors, jigsaw, xjson_object, "actors");
@@ -71,7 +71,28 @@ int main(int argc, char* argv[])
     xjson_array_add_value(jigsaw_keywords, "murder investigation");
             xjson_json_add_property(jigsaw, xjson_string, "poster_url", "https://images-na.ssl-images-amazon.com/images/M/MV5BNmRiZDM4ZmMtOTVjMi00YTNlLTkyNjMtMjI2OTAxNjgwMWM1XkEyXkFqcGdeQXVyMjMxOTE0ODA@._V1_SY1000_CR0,0,648,1000_AL_.jpg");
 
+    printf("JSON printed:\n\t");
     xjson_json_print(stdout, document);
+
+    xjson_element_t *element;
+    xjson_scan(&element, document);
+    do {
+        if (xjson_element_has_key(element)) {
+            const char *key;
+            const xjson_value_t *value;
+            xjson_element_get(&key, &value, element);
+            xjson_type_e type;
+            xjson_value_get_type(&type, value);
+            printf("%s (%s): \n", key, xjson_type_str(type));
+
+        }
+    } while (xjson_scan(&element, NULL));
+
+
+
+
+
+
     xjson_pool_dispose(pool);
 
 
