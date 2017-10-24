@@ -1,0 +1,3 @@
+*.plist
+bin
+cmake-build-debug
