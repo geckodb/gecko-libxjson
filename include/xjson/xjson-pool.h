@@ -15,41 +15,62 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_QUERY_H
-#define XJSON_QUERY_H
+#ifndef XJSON_POOL_H
+#define XJSON_POOL_H
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <stdio.h>
-#include "xjson.h"
+#include <xjson/xjson.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
+// C O N F I G
 // ---------------------------------------------------------------------------------------------------------------------
+
+#ifndef XJSON_POOL_CAPACITY
+    #define XJSON_POOL_CAPACITY                        500
+#endif
 
 // ---------------------------------------------------------------------------------------------------------------------
 // F O R W A R D   D E C L A R A T I O N S
 // ---------------------------------------------------------------------------------------------------------------------
 
-typedef struct xjson_object_t           xjson_object_t;
+typedef struct xjson_object_t         xjson_object_t;
 
-typedef struct xjson_query_t            xjson_query_t;
+typedef struct xjson_array_t          xjson_array_t;
+
+typedef struct xjson_unnamed_entry_t  xjson_unnamed_entry_t;
+
+typedef struct xjson_named_entry_t    xjson_named_entry_t;
+
+typedef struct xjson_element_t        xjson_element_t;
+
+typedef struct xjson_value_t          xjson_value_t;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// T Y P E   D E C L A R A T I O N S
+// ---------------------------------------------------------------------------------------------------------------------
+
+typedef struct xjson_pool_t           xjson_pool_t;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-xjson_status_e xjson_query_open(xjson_query_t **query, xjson_object_t *root);
+xjson_status_e xjson_pool_create(xjson_pool_t **pool);
+
+xjson_status_e xjson_pool_dispose(xjson_pool_t *pool);
+
+void *xjson_pool_malloc(xjson_pool_t *pool, xjson_u64_t size);
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //XJSON_QUERY_H
+#endif //XJSON_POOL_H

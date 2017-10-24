@@ -15,41 +15,33 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_QUERY_H
-#define XJSON_QUERY_H
-
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <stdio.h>
-#include "xjson.h"
+#include <stdlib.h>
+#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <xjson/xjson-misc.h>
 
 // ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
+// I N T E R F A C E   I M P L E M E N T A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------------------------------------------------
-// F O R W A R D   D E C L A R A T I O N S
-// ---------------------------------------------------------------------------------------------------------------------
-
-typedef struct xjson_object_t           xjson_object_t;
-
-typedef struct xjson_query_t            xjson_query_t;
-
-// ---------------------------------------------------------------------------------------------------------------------
-// I N T E R F A C E   D E C L A R A T I O N
-// ---------------------------------------------------------------------------------------------------------------------
-
-xjson_status_e xjson_query_open(xjson_query_t **query, xjson_object_t *root);
-
-
-#ifdef __cplusplus
+void *xjson_misc_autoresize(void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries, xjson_u64_t *capacity)
+{
+    xjson_u64_t new_num_entires = *num_entries + 1;
+    while (new_num_entires >= *capacity) {
+        *capacity = (*capacity + 1) * 1.7f;
+        return realloc(base, *capacity * elem_size);
+    }
+    return base;
 }
-#endif
 
-#endif //XJSON_QUERY_H
+char *xjson_misc_strdup(xjson_pool_t *pool, const char *str)
+{
+    char *cpy = xjson_pool_malloc(pool, strlen(str) + 1);
+    strcpy(cpy, str);
+    return cpy;
+}
+

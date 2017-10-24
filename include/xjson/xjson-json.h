@@ -23,6 +23,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 #include <xjson/xjson.h>
+#include <xjson/xjson-pool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,34 +36,6 @@ extern "C" {
 #ifndef XJSON_DEFAULT_CAPACITY_VALUE
     #define XJSON_DEFAULT_CAPACITY_VALUE                    15
 #endif
-#ifndef XJSON_POOL_OBJS_CAPACITY
-    #define XJSON_POOL_OBJS_CAPACITY                        XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_ARRAYS_CAPACITY
-    #define XJSON_POOL_ARRAYS_CAPACITY                      XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_UNNAMED_ENTRIES_CAPACITY
-    #define XJSON_POOL_UNNAMED_ENTRIES_CAPACITY             XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_NAMED_ENTRIES_CAPACITY
-    #define XJSON_POOL_NAMED_ENTRIES_CAPACITY               XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_STRINGS_CAPACITY
-    #define XJSON_POOL_STRINGS_CAPACITY                     XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_VALUES_CAPACITY
-    #define XJSON_POOL_VALUES_CAPACITY                      XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_NAMED_ENTRY_VECTORS_CAPACITY
-    #define XJSON_POOL_NAMED_ENTRY_VECTORS_CAPACITY         XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_UNNAMED_ENTRY_VECTORS_CAPACITY
-    #define XJSON_POOL_UNNAMED_ENTRY_VECTORS_CAPACITY       XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-#ifndef XJSON_POOL_ELEMENTS_CAPACITY
-    #define XJSON_POOL_ELEMENTS_CAPACITY                    XJSON_DEFAULT_CAPACITY_VALUE
-#endif
-
 
 #ifndef XJSON_JSON_ENTRIES_CAPACITY
     #define XJSON_JSON_ENTRIES_CAPACITY                     XJSON_DEFAULT_CAPACITY_VALUE
@@ -94,9 +67,7 @@ typedef enum
 // F O R W A R D   D E C L A R A T I O N S
 // ---------------------------------------------------------------------------------------------------------------------
 
-typedef struct xjson_pool_t           xjson_pool_t;
-
-typedef struct xjson_object_t           xjson_object_t;
+typedef struct xjson_object_t         xjson_object_t;
 
 typedef struct xjson_array_t          xjson_array_t;
 
@@ -111,10 +82,6 @@ typedef struct xjson_value_t          xjson_value_t;
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
-
-xjson_status_e xjson_pool_create(xjson_pool_t **pool);
-
-xjson_status_e xjson_pool_dispose(xjson_pool_t *pool);
 
 xjson_status_e xjson_json_create(xjson_object_t **json, xjson_pool_t *pool);
 

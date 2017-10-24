@@ -2,7 +2,7 @@
 set(CMAKE_CXX_COMPILER  "/usr/bin/clang++")
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 
-project(libdjson)
+project(libxjson)
 
 set(CMAKE_BINARY_DIR          ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH    ${CMAKE_SOURCE_DIR}/bin)
@@ -29,7 +29,13 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 set(SOURCE_FILES
         include/xjson/xjson-json.h
         src/xjson/xjson-json.c
-        include/xjson/xjson-query.h src/xjson/xjson_query.c include/xjson/xjson.h)
+        include/xjson/xjson-query.h
+        src/xjson/xjson_query.c
+        include/xjson/xjson.h
+        include/xjson/xjson-pool.h
+        src/xjson/xjson-pool.c
+        include/xjson/xjson-misc.h
+        src/xjson/xjson_misc.c)
 
 add_executable(
     samples-basics

@@ -1,5 +1,6 @@
 
 #include <xjson/xjson-json.h>
+#include <xjson/xjson-query.h>
 
 /*
 
@@ -74,19 +75,8 @@ int main(int argc, char* argv[])
     printf("JSON printed:\n\t");
     xjson_json_print(stdout, document);
 
-    xjson_element_t *element;
-    xjson_scan(&element, document);
-    do {
-        if (xjson_element_has_key(element)) {
-            const char *key;
-            const xjson_value_t *value;
-            xjson_element_get(&key, &value, element);
-            xjson_type_e type;
-            xjson_value_get_type(&type, value);
-            printf("%s (%s): \n", key, xjson_type_str(type));
-
-        }
-    } while (xjson_scan(&element, NULL));
+    xjson_query_t *query;
+    xjson_query_open(&query, document);
 
 
 

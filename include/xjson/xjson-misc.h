@@ -15,13 +15,31 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#include <xjson/xjson-query.h>
+#ifndef XJSON_MISC_H
+#define XJSON_MISC_H
 
-typedef struct xjson_query_t {
+// ---------------------------------------------------------------------------------------------------------------------
+// I N C L U D E S
+// ---------------------------------------------------------------------------------------------------------------------
 
-} xjson_query_t;
+#include <xjson/xjson.h>
+#include <xjson/xjson-pool.h>
 
-xjson_status_e xjson_query_open(xjson_query_t **query, xjson_object_t *root)
-{
-    return xjson_status_ok;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// ---------------------------------------------------------------------------------------------------------------------
+// I N T E R F A C E   D E C L A R A T I O N
+// ---------------------------------------------------------------------------------------------------------------------
+
+void *xjson_misc_autoresize(void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries, xjson_u64_t *capacity);
+
+char *xjson_misc_strdup(xjson_pool_t *pool, const char *str);
+
+#ifdef __cplusplus
 }
+#endif
+
+
+#endif //XJSON_MISC_H
