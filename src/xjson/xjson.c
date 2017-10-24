@@ -93,13 +93,8 @@
 
 typedef enum
 {
-    xjson_complex_context_named_entry, xjson_complex_context_unnamed_entry
-} xjson_complex_context_e;
-
-typedef enum
-{
-    xjson_primitive_context_named_entry, xjson_primitive_context_unnamed_entry
-} xjson_primitive_context_e;
+    xjson_context_named_entry, xjson_context_unnamed_entry
+} xjson_context_e;
 
 typedef struct xjson_pool_t
 {
@@ -117,9 +112,9 @@ typedef struct xjson_context_desc_t
 {
     union {
         xjson_named_entry_t         *named_entry;
-        xjson_unnamed_entry_t       *array_entry;
+        xjson_unnamed_entry_t       *unnamed_entry;
     } context;
-    xjson_complex_context_e          context_type;
+    xjson_context_e          context_type;
 } xjson_context_desc_t;
 
 typedef struct xjson_json_t
@@ -158,11 +153,7 @@ typedef struct xjson_named_entry_t
 
 typedef struct xjson_value_t
 {
-    union {
-        xjson_named_entry_t      *named_entry;
-        xjson_unnamed_entry_t    *unnamed_entry;
-    } context;
-    xjson_primitive_context_e     context_desc;
+    xjson_context_desc_t          context_desc;
     xjson_type_e                  type;
     union {
         xjson_array_t            *array;
@@ -180,16 +171,16 @@ typedef struct xjson_value_t
 
 static void *generic_autoresize(void *base, xjson_size_t elem_size, xjson_size_t *num_entries,
                                          xjson_size_t *capacity);
-static xjson_json_t *json_create(xjson_pool_t *pool, xjson_complex_context_e parent_type, void *parent_ptr);
+static xjson_json_t *json_create(xjson_pool_t *pool, xjson_context_e parent_type, void *parent_ptr);
 static xjson_status_e json_autoresize(xjson_json_t *object);
 static xjson_status_e array_autoresize(xjson_array_t *array);
 static void json_add_entry(xjson_json_t *object, xjson_named_entry_t *entry);
 static xjson_status_e json_add_complex(xjson_json_t **object, xjson_array_t **array, xjson_json_t *parent,
                                        const char *key, xjson_type_e complex_type, xjson_type_e array_type);
-static xjson_value_t *value_create(xjson_pool_t *pool, xjson_type_e type, xjson_primitive_context_e context,
+static xjson_value_t *value_create(xjson_pool_t *pool, xjson_type_e type, xjson_context_e context,
                                    void *parent_ptr);
 static xjson_named_entry_t *entry_create(xjson_json_t *object, xjson_type_e type, const char *key);
-static xjson_array_t *array_create(xjson_type_e type, xjson_complex_context_e context, void *parent_ptr);
+static xjson_array_t *array_create(xjson_type_e type, xjson_context_e context, void *parent_ptr);
 static xjson_pool_t *context_get_pool(xjson_context_desc_t *desc);
 static xjson_unnamed_entry_t *array_entry_create(xjson_pool_t *pool, xjson_array_t *context);
 
@@ -231,7 +222,7 @@ xjson_status_e xjson_pool_dispose(xjson_pool_t *pool)
 
 xjson_status_e xjson_json_create(xjson_json_t **json, xjson_pool_t *pool)
 {
-    *json = json_create(pool, xjson_complex_context_named_entry, XJSON_ROOT);
+    *json = json_create(pool, xjson_context_named_entry, XJSON_ROOT);
     return (*json != NULL ? xjson_result_ok : (pool != NULL ? xjson_result_failed : xjson_result_nopool));
 }
 
@@ -305,7 +296,7 @@ xjson_status_e xjson_array_add_value(xjson_array_t *parent, const void *data)
     if (parent != NULL && data != NULL) {
         xjson_pool_t *pool = context_get_pool(&parent->context_desc);
         xjson_unnamed_entry_t *entry = array_entry_create(pool, parent);
-        entry->value = value_create(pool, parent->type, xjson_primitive_context_unnamed_entry, parent);
+        entry->value = value_create(pool, parent->type, xjson_context_unnamed_entry, parent);
         if (((status = value_set_primitive(entry->value, pool, parent->type, data)) == xjson_result_ok) &&
                 (status = array_autoresize(parent)) == xjson_result_ok) {
             parent->entries[parent->num_entries++] = entry;
@@ -324,7 +315,7 @@ xjson_status_e xjson_array_add_object(xjson_json_t **object, xjson_array_t *pare
         status = array_autoresize(parent);
         xjson_unnamed_entry_t *entry = array_entry_create(pool, parent);
         entry->value = POOL_MALLOC_VALUE(pool);
-        entry->value->object = json_create(pool, xjson_complex_context_unnamed_entry, entry);
+        entry->value->object = json_create(pool, xjson_context_unnamed_entry, entry);
         parent->entries[parent->num_entries++] = entry;
         *object = entry->value->object;
         return xjson_result_ok;
@@ -339,7 +330,7 @@ xjson_status_e xjson_array_add_array(xjson_array_t **array, xjson_type_e type, x
         status = array_autoresize(parent);
         xjson_unnamed_entry_t *entry = array_entry_create(pool, parent);
         entry->value = POOL_MALLOC_VALUE(pool);
-        entry->value->array = array_create(type, xjson_complex_context_unnamed_entry, entry);
+        entry->value->array = array_create(type, xjson_context_unnamed_entry, entry);
         parent->entries[parent->num_entries++] = entry;
         *array = entry->value->array;
         return xjson_result_ok;
@@ -350,7 +341,7 @@ xjson_status_e xjson_array_add_array(xjson_array_t **array, xjson_type_e type, x
 // H E L P E R   I M P L E M E N T A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-static xjson_json_t *json_create(xjson_pool_t *pool, xjson_complex_context_e parent_type, void *parent_ptr)
+static xjson_json_t *json_create(xjson_pool_t *pool, xjson_context_e parent_type, void *parent_ptr)
 {
     xjson_json_t *retval = NULL;
     if ((pool != NULL) &&
@@ -360,11 +351,11 @@ static xjson_json_t *json_create(xjson_pool_t *pool, xjson_complex_context_e par
         retval->idx = retval->num_entries = 0;
         retval->context_desc.context_type = parent_type;
         switch (parent_type) {
-            case xjson_complex_context_named_entry:
+            case xjson_context_named_entry:
                 retval->context_desc.context.named_entry = parent_ptr;
                 break;
-            case xjson_complex_context_unnamed_entry:
-                retval->context_desc.context.array_entry = parent_ptr;
+            case xjson_context_unnamed_entry:
+                retval->context_desc.context.unnamed_entry = parent_ptr;
                 break;
             default: return NULL;
         }
@@ -415,8 +406,8 @@ static xjson_status_e json_add_complex(xjson_json_t **object, xjson_array_t **ar
         return xjson_result_interalerr;
     } else {
         if (parent != NULL && key != NULL && ((entry = entry_create(parent, xjson_object, key)) != NULL) &&
-            (((complex_type != xjson_object) || ((retval_object = json_create(parent->pool, xjson_complex_context_named_entry, entry)) != NULL)) &&
-             ((complex_type != xjson_array) || ((retval_array = array_create(array_type, xjson_complex_context_named_entry, entry)) != NULL)))) {
+            (((complex_type != xjson_object) || ((retval_object = json_create(parent->pool, xjson_context_named_entry, entry)) != NULL)) &&
+             ((complex_type != xjson_array) || ((retval_array = array_create(array_type, xjson_context_named_entry, entry)) != NULL)))) {
             if ((status = json_autoresize(parent)) == xjson_result_ok) {
                 json_add_entry(parent, entry);
                 if (complex_type == xjson_object) {
@@ -432,17 +423,18 @@ static xjson_status_e json_add_complex(xjson_json_t **object, xjson_array_t **ar
     }
 }
 
-static xjson_value_t *value_create(xjson_pool_t *pool, xjson_type_e type, xjson_primitive_context_e context,
+static xjson_value_t *value_create(xjson_pool_t *pool, xjson_type_e type, xjson_context_e context,
                                    void *parent_ptr)
 {
     xjson_value_t *value = POOL_MALLOC_VALUE(pool);
     value->type = type;
+    value->context_desc.context_type = context;
     switch (context) {
-        case xjson_primitive_context_named_entry:
-            value->context.named_entry = parent_ptr;
+        case xjson_context_named_entry:
+            value->context_desc.context.named_entry = parent_ptr;
             break;
-        case xjson_primitive_context_unnamed_entry:
-            value->context.unnamed_entry = parent_ptr;
+        case xjson_context_unnamed_entry:
+            value->context_desc.context.unnamed_entry = parent_ptr;
             break;
         default: return NULL;
     }
@@ -452,21 +444,21 @@ static xjson_value_t *value_create(xjson_pool_t *pool, xjson_type_e type, xjson_
 static xjson_named_entry_t *entry_create(xjson_json_t *object, xjson_type_e type, const char *key)
 {
     xjson_named_entry_t *entry = POOL_MALLOC_ENTRY(object->pool);
-    xjson_value_t *value = value_create(object->pool, type, xjson_primitive_context_named_entry, entry);
+    xjson_value_t *value = value_create(object->pool, type, xjson_context_named_entry, entry);
     entry->context = object;
     entry->key = POOL_STRDUP(object->pool, key);
     entry->value = value;
     return entry;
 }
 
-static xjson_array_t *array_create(xjson_type_e type, xjson_complex_context_e context, void *parent_ptr)
+static xjson_array_t *array_create(xjson_type_e type, xjson_context_e context, void *parent_ptr)
 {
     xjson_context_desc_t context_desc;
     switch (context) {
-        case xjson_complex_context_unnamed_entry:
-            context_desc.context.array_entry = parent_ptr;
+        case xjson_context_unnamed_entry:
+            context_desc.context.unnamed_entry = parent_ptr;
             break;
-        case xjson_complex_context_named_entry:
+        case xjson_context_named_entry:
             context_desc.context.named_entry = parent_ptr;
             break;
         default: return NULL;
@@ -484,10 +476,10 @@ static xjson_array_t *array_create(xjson_type_e type, xjson_complex_context_e co
 static xjson_pool_t *context_get_pool(xjson_context_desc_t *desc)
 {
     switch (desc->context_type) {
-        case xjson_complex_context_named_entry:
+        case xjson_context_named_entry:
             return desc->context.named_entry->context->pool;
-        case xjson_complex_context_unnamed_entry:
-            return context_get_pool(&desc->context.array_entry->context->context_desc);
+        case xjson_context_unnamed_entry:
+            return context_get_pool(&desc->context.unnamed_entry->context->context_desc);
         default: return NULL;
     }
 }
