@@ -66,4 +66,8 @@ typedef char *                        xjson_string_t;
 
 typedef int                           xjson_boolean_t;
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif //XJSON_H
