@@ -1,5 +1,5 @@
 
-#include <xjson/xjson.h>
+#include <xjson/xjson-json.h>
 
 /*
 

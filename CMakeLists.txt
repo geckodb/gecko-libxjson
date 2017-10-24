@@ -27,9 +27,9 @@ option(BUILD_DOCUMENTATION "API documentation requires Doxygen" ${DOXYGEN_FOUND}
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(SOURCE_FILES
-    include/xjson/xjson.h
-    src/xjson/xjson.c
-)
+        include/xjson/xjson-json.h
+        src/xjson/xjson-json.c
+        include/xjson/xjson-query.h src/xjson/xjson_query.c include/xjson/xjson.h)
 
 add_executable(
     samples-basics

@@ -15,8 +15,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_H
-#define XJSON_H
+#ifndef XJSON_QUERY_H
+#define XJSON_QUERY_H
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
@@ -29,41 +29,24 @@ extern "C" {
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// C O N S T A N T S
+// T Y P E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#define XJSON_ROOT                   NULL
+// ---------------------------------------------------------------------------------------------------------------------
+// F O R W A R D   D E C L A R A T I O N S
+// ---------------------------------------------------------------------------------------------------------------------
+
+typedef struct xjson_cursor_t xjson_cursor_t;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// I N T E R F A C E   D E C L A R A T I O N
+// ---------------------------------------------------------------------------------------------------------------------
+
+
+
 
 #ifdef __cplusplus
 }
 #endif
 
-// ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
-// ---------------------------------------------------------------------------------------------------------------------
-
-typedef enum
-{
-    xjson_status_ok,
-    xjson_status_failed,
-    xjson_status_malloc_err,
-    xjson_status_pmalloc_err,
-    xjson_status_realloc_err,
-    xjson_status_nullptr,
-    xjson_status_notype,
-    xjson_status_interalerr,
-    xjson_status_wrongusage,
-    xjson_status_nopool
-}                                     xjson_status_e;
-
-typedef long long                     xjson_s64_t;
-
-typedef unsigned long long            xjson_u64_t;
-
-typedef double                        xjson_double_t;
-
-typedef char *                        xjson_string_t;
-
-typedef int                           xjson_boolean_t;
-
-#endif //XJSON_H
+#endif //XJSON_QUERY_H
