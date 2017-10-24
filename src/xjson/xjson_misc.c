@@ -28,14 +28,26 @@
 // I N T E R F A C E   I M P L E M E N T A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
+void *xjson_misc_pooled_autoresize(xjson_pool_t *pool, void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries,
+                                   xjson_u64_t *capacity)
+{
+    xjson_u64_t new_num_entires = *num_entries + 1;
+    while (new_num_entires >= *capacity) {
+        *capacity = (*capacity + 1) * 1.7f;
+    }
+
+    void *result = xjson_pool_malloc(pool, *capacity * elem_size);
+    memcpy(result, base, *num_entries * elem_size);
+    return result;
+}
+
 void *xjson_misc_autoresize(void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries, xjson_u64_t *capacity)
 {
     xjson_u64_t new_num_entires = *num_entries + 1;
     while (new_num_entires >= *capacity) {
         *capacity = (*capacity + 1) * 1.7f;
-        return realloc(base, *capacity * elem_size);
     }
-    return base;
+    return realloc(base, *capacity * *capacity);
 }
 
 char *xjson_misc_strdup(xjson_pool_t *pool, const char *str)

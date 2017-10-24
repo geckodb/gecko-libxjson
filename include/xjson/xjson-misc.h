@@ -33,6 +33,9 @@ extern "C" {
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
+void *xjson_misc_pooled_autoresize(xjson_pool_t *pool, void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries,
+                                   xjson_u64_t *capacity);
+
 void *xjson_misc_autoresize(void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries, xjson_u64_t *capacity);
 
 char *xjson_misc_strdup(xjson_pool_t *pool, const char *str);

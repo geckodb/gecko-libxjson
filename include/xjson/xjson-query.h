@@ -30,10 +30,6 @@ extern "C" {
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
-// ---------------------------------------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------------------------------------
 // F O R W A R D   D E C L A R A T I O N S
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -41,11 +37,24 @@ typedef struct xjson_object_t           xjson_object_t;
 
 typedef struct xjson_query_t            xjson_query_t;
 
+typedef struct xjson_pool_t             xjson_pool_t;
+
+typedef struct xjson_element_t          xjson_element_t;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// T Y P E S
+// ---------------------------------------------------------------------------------------------------------------------
+
+typedef xjson_boolean_t (*xjson_pred_t)(void *capture, const xjson_element_t *element);
+
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-xjson_status_e xjson_query_open(xjson_query_t **query, xjson_object_t *root);
+xjson_status_e xjson_query_start(xjson_query_t **query, xjson_pool_t *pool, xjson_object_t *root,
+                                 void *capture, xjson_pred_t pred);
+
+xjson_status_e xjson_query_print(FILE *file, const xjson_query_t *query);
 
 
 #ifdef __cplusplus

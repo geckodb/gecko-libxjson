@@ -26,6 +26,13 @@
 
  */
 
+xjson_boolean_t pred_objects_or_arrays_only(void *capture, const xjson_element_t *element)
+{
+    xjson_type_e type;
+    xjson_element_get_type(&type, element);
+    return (type == xjson_object || type == xjson_array);
+}
+
 int main(int argc, char* argv[])
 {
     xjson_pool_t *pool;
@@ -76,7 +83,8 @@ int main(int argc, char* argv[])
     xjson_json_print(stdout, document);
 
     xjson_query_t *query;
-    xjson_query_open(&query, document);
+    xjson_query_start(&query, pool, document, NULL, pred_objects_or_arrays_only);
+    xjson_query_print(stdout, query);
 
 
 

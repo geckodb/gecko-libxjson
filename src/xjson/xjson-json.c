@@ -79,6 +79,7 @@ typedef struct xjson_named_entry_t
 
 typedef struct xjson_element_t {
     xjson_entry_desc_t            entry;
+    xjson_u64_t                   idx;
 } xjson_element_t;
 
 typedef struct xjson_value_t
@@ -111,7 +112,7 @@ static xjson_named_entry_t *entry_create(xjson_object_t *object, xjson_type_e ty
 static xjson_array_t *array_create(xjson_type_e type, xjson_entry_type_e context, void *parent_ptr);
 static xjson_pool_t *context_get_pool(xjson_entry_desc_t *desc);
 static xjson_unnamed_entry_t *array_entry_create(xjson_pool_t *pool, xjson_array_t *context);
-static xjson_element_t *element_create(xjson_pool_t *pool, xjson_entry_type_e entry_type, void *entry);
+static xjson_element_t *element_create(xjson_pool_t *pool, xjson_entry_type_e entry_type, void *entry, xjson_u64_t idx);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   I M P L E M E N T A T I O N
@@ -307,21 +308,19 @@ xjson_status_e xjson_array_print(FILE *file, const xjson_array_t *array)
     } else return xjson_status_nullptr;
 }
 
-xjson_status_e xjson_scan(xjson_element_t **element, const xjson_object_t *object)
+xjson_element_t **xjson_json_fullscan(xjson_u64_t *num_elements, const xjson_object_t *object)
 {
-    static const xjson_object_t *source;
-    static xjson_u64_t idx;
-    if (object != NULL) {
-        source = object;
-        idx = 0;
+    *num_elements = object->num_entries;
+    xjson_element_t **retval = NULL;
+    if (object->num_entries > 0) {
+        retval = xjson_pool_malloc(object->pool, object->num_entries * sizeof(xjson_element_t *));
+        for (xjson_u64_t idx = 0; idx < object->num_entries; idx++) {
+            xjson_named_entry_t *entry = object->entries[idx];
+            xjson_element_t *result = element_create(object->pool, xjson_entry_type_named_entry, entry, idx);
+            retval[idx] = result;
+        }
     }
-    if (idx < source->num_entries) {
-        xjson_named_entry_t *entry = source->entries[idx];
-        xjson_element_t *result = element_create(source->pool, xjson_entry_type_named_entry, entry);
-        *element = result;
-        idx++;
-        return xjson_status_ok;
-    } else return xjson_status_eof;
+    return retval;
 }
 
 xjson_status_e xjson_element_has_key(xjson_element_t *element)
@@ -354,6 +353,29 @@ xjson_status_e xjson_element_get(const char **key, const xjson_value_t **value, 
     } else return xjson_status_nullptr;
 }
 
+xjson_status_e xjson_element_get_type(xjson_type_e *type, const xjson_element_t *element)
+{
+    switch (element->entry.context_type) {
+        case xjson_entry_type_named_entry:
+            *type = element->entry.context.named_entry->value->type;
+            break;
+        case xjson_entry_type_unnamed_entry:
+            *type = element->entry.context.unnamed_entry->context->type;
+            break;
+        default:
+            return xjson_status_interalerr;
+    }
+    return xjson_status_ok;
+}
+
+xjson_status_e xjson_element_print(FILE *file, xjson_element_t *element)
+{
+    if (file && element) {
+        fprintf(file, "element[%lld]", element->idx);
+        return xjson_status_ok;
+    } else return xjson_status_nullptr;
+}
+
 xjson_status_e xjson_value_get_type(xjson_type_e *type, const xjson_value_t *value)
 {
     if (type && value) {
@@ -375,6 +397,11 @@ const char *xjson_type_str(const xjson_type_e type)
         case xjson_null:            return "null";
         default: return NULL;
     }
+}
+
+xjson_pool_t *xjson_object_get_pool(const xjson_object_t *object)
+{
+    return (object != NULL ? object->pool : NULL);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -406,15 +433,16 @@ static xjson_object_t *json_create(xjson_pool_t *pool, xjson_entry_type_e parent
 
 static xjson_status_e json_autoresize(xjson_object_t *object)
 {
-    object->entries = xjson_misc_autoresize(object->entries, sizeof(xjson_named_entry_t *), &object->num_entries,
-                                         &object->capacity);
+    object->entries = xjson_misc_pooled_autoresize(object->pool, object->entries, sizeof(xjson_named_entry_t *),
+                                                   &object->num_entries, &object->capacity);
     return (object->entries != NULL ? xjson_status_ok : xjson_status_pmalloc_err);
 }
 
 static xjson_status_e array_autoresize(xjson_array_t *array)
 {
-    array->entries = xjson_misc_autoresize(array->entries, sizeof(xjson_unnamed_entry_t *), &array->num_entries,
-                                        &array->capacity);
+    array->entries = xjson_misc_pooled_autoresize(context_get_pool(&array->context_desc), array->entries,
+                                                  sizeof(xjson_unnamed_entry_t *), &array->num_entries,
+                                                  &array->capacity);
     return (array->entries != NULL ? xjson_status_ok : xjson_status_pmalloc_err);
 }
 
@@ -524,10 +552,11 @@ static xjson_unnamed_entry_t *array_entry_create(xjson_pool_t *pool, xjson_array
     return entry;
 }
 
-static xjson_element_t *element_create(xjson_pool_t *pool, xjson_entry_type_e entry_type, void *entry)
+static xjson_element_t *element_create(xjson_pool_t *pool, xjson_entry_type_e entry_type, void *entry, xjson_u64_t idx)
 {
     xjson_element_t *element = xjson_pool_malloc(pool, sizeof(xjson_element_t));
     element->entry.context_type = entry_type;
+    element->idx = idx;
     switch (entry_type) {
         case xjson_entry_type_named_entry:
             element->entry.context.named_entry = entry;

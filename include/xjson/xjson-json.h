@@ -34,7 +34,7 @@ extern "C" {
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifndef XJSON_DEFAULT_CAPACITY_VALUE
-    #define XJSON_DEFAULT_CAPACITY_VALUE                    15
+    #define XJSON_DEFAULT_CAPACITY_VALUE                    300
 #endif
 
 #ifndef XJSON_JSON_ENTRIES_CAPACITY
@@ -103,15 +103,21 @@ xjson_status_e xjson_array_add_array(xjson_array_t **array, xjson_type_e type, x
 
 xjson_status_e xjson_array_print(FILE *file, const xjson_array_t *array);
 
-xjson_status_e xjson_scan(xjson_element_t **element, const xjson_object_t *object);
+xjson_element_t **xjson_json_fullscan(xjson_u64_t *num_elements, const xjson_object_t *object);
 
 xjson_status_e xjson_element_has_key(xjson_element_t *element);
 
 xjson_status_e xjson_element_get(const char **key, const xjson_value_t **value, xjson_element_t *element);
 
+xjson_status_e xjson_element_get_type(xjson_type_e *type, const xjson_element_t *element);
+
+xjson_status_e xjson_element_print(FILE *file, xjson_element_t *element);
+
 xjson_status_e xjson_value_get_type(xjson_type_e *type, const xjson_value_t *value);
 
 const char *xjson_type_str(const xjson_type_e type);
+
+xjson_pool_t *xjson_object_get_pool(const xjson_object_t *object);
 
 /*
 
