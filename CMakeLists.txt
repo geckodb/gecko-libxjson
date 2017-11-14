@@ -2,7 +2,7 @@
 set(CMAKE_CXX_COMPILER  "/usr/bin/clang++")
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 
-project(libxjson)
+project(brooks)
 
 set(CMAKE_BINARY_DIR          ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH    ${CMAKE_SOURCE_DIR}/bin)
@@ -27,15 +27,22 @@ option(BUILD_DOCUMENTATION "API documentation requires Doxygen" ${DOXYGEN_FOUND}
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(SOURCE_FILES
-        include/xjson/xjson-json.h
-        src/xjson/xjson-json.c
-        include/xjson/xjson-query.h
-        src/xjson/xjson_query.c
-        include/xjson/xjson.h
-        include/xjson/xjson-pool.h
-        src/xjson/xjson-pool.c
-        include/xjson/xjson-misc.h
-        src/xjson/xjson_misc.c)
+        include/brooks/brooks_doc.h
+        src/brooks/brooks_doc.c
+        include/brooks/brooks_query.h
+        src/brooks/brooks_query.c
+        include/brooks/brooks.h
+        include/brooks/brooks_pool.h
+        src/brooks/brooks_pool.c
+        include/brooks/brooks_misc.h
+        src/brooks/brooks_misc.c include/brooks/query/brooks_operator.h include/brooks/query/brooks_cursor.h src/brooks/query/brooks_cursor.c src/brooks/query/brooks_operator.c include/brooks/query/operators/scans/brooks_scan_objects.h include/brooks/query/operators/scans/brooks_scan_arrays.h include/brooks/query/operators/scans/brooks_scan_strings.h src/brooks/query/operators/scans/brooks_scan_objects.c src/brooks/query/operators/scans/brooks_scan_array.c include/opendsb/odsb_datagen.h )
+
+
+add_executable(
+    opendsb
+    include/opendsb/main.c
+    ${SOURCE_FILES}
+)
 
 add_executable(
     samples-basics

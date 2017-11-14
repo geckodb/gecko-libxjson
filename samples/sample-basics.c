@@ -1,6 +1,9 @@
 
-#include <xjson/xjson-json.h>
-#include <xjson/xjson-query.h>
+#include <brooks/brooks_doc.h>
+#include <brooks/brooks_query.h>
+#include <brooks/query/operators/scans/brooks_scan_objects.h>
+#include <brooks/query/brooks_cursor.h>
+#include <brooks/query/operators/scans/brooks_scan_arrays.h>
 
 /*
 
@@ -26,72 +29,119 @@
 
  */
 
-xjson_boolean_t pred_objects_or_arrays_only(void *capture, const xjson_element_t *element)
+bool pred_objects_or_arrays_only(void *capture, const brooks_element_t *element)
 {
-    xjson_type_e type;
-    xjson_element_get_type(&type, element);
-    return (type == xjson_object || type == xjson_array);
+    brooks_type_e type;
+    brooks_doc_element_get_type(&type, element);
+    return (type == brooks_type_object || type == brooks_type_array);
 }
 
 int main(int argc, char* argv[])
 {
-    xjson_pool_t *pool;
-    xjson_object_t *document, *source, *it, *jigsaw, *actors_skarsgard, *actors_lieberher, *actors_bell, *actors_passmore;
-    xjson_array_t *movies, *it_actors, *it_keywords, *jigsaw_actors, *jigsaw_keywords;
+    brooks_pool_t *pool;
+    brooks_object_t *document, *source, *it, *jigsaw, *actors_skarsgard, *actors_lieberher, *actors_bell, *actors_passmore;
+    brooks_array_t *movies, *it_actors, *it_keywords, *jigsaw_actors, *jigsaw_keywords;
 
-    xjson_pool_create(&pool);
-    xjson_json_create(&document, pool);
-    xjson_json_add_property(document, xjson_string, "snapshot_date", "Oct 23th, 2017");
-    xjson_json_add_object(&source, document, "source");
-        xjson_json_add_property(source, xjson_string, "site", "http://www.imdb.com/title/tt1396484/?ref_=nv_sr_1");
-    xjson_json_add_array(&movies, document, xjson_object, "movies");
-        xjson_array_add_object(&it, movies);
-            xjson_json_add_property(it, xjson_string, "title", "It (2017)");
-            xjson_json_add_array(&it_actors, it, xjson_object, "actors");
-                xjson_array_add_object(&actors_skarsgard, it_actors);
-                    xjson_json_add_property(actors_skarsgard, xjson_string, "name", "Bill Skarsgård");
-                    xjson_json_add_property(actors_skarsgard, xjson_string, "role", "Pennywise");
-                xjson_array_add_object(&actors_lieberher, it_actors);
-                    xjson_json_add_property(actors_lieberher, xjson_string, "name", "Jaeden Lieberher");
-                    xjson_json_add_property(actors_lieberher, xjson_string, "role", "Bill");
-            xjson_json_add_array(&it_keywords, it, xjson_string, "keywords");
-    xjson_array_add_value(it_keywords, "clown");
-    xjson_array_add_value(it_keywords, "based on novel");
-    xjson_array_add_value(it_keywords, "supernatural");
-    xjson_array_add_value(it_keywords, "balloon");
-    xjson_array_add_value(it_keywords, "fear");
-            xjson_json_add_property(it, xjson_null, "poster_url", NULL);
-            xjson_json_add_property(it, xjson_number_integer, "reviews", &(xjson_u64_t){928});
-            xjson_json_add_property(it, xjson_number_double, "rating", &(xjson_double_t){7.8});
-        xjson_array_add_object(&jigsaw, movies);
-            xjson_json_add_property(jigsaw, xjson_string, "title", "Jigsaw (2017)");
-            xjson_json_add_array(&jigsaw_actors, jigsaw, xjson_object, "actors");
-                xjson_array_add_object(&actors_bell, jigsaw_actors);
-                    xjson_json_add_property(actors_bell, xjson_string, "name", "Tobin Bell");
-                    xjson_json_add_property(actors_bell, xjson_string, "role", "John Kramer");
-                xjson_array_add_object(&actors_passmore, jigsaw_actors);
-                    xjson_json_add_property(actors_passmore, xjson_string, "name", "Matt Passmore");
-                    xjson_json_add_property(actors_passmore, xjson_string, "role", "Logan Nelson");
-            xjson_json_add_array(&jigsaw_keywords, jigsaw, xjson_string, "keywords");
-    xjson_array_add_value(jigsaw_keywords, "copycat killer");
-    xjson_array_add_value(jigsaw_keywords, "one word title");
-    xjson_array_add_value(jigsaw_keywords, "cop");
-    xjson_array_add_value(jigsaw_keywords, "murder investigation");
-            xjson_json_add_property(jigsaw, xjson_string, "poster_url", "https://images-na.ssl-images-amazon.com/images/M/MV5BNmRiZDM4ZmMtOTVjMi00YTNlLTkyNjMtMjI2OTAxNjgwMWM1XkEyXkFqcGdeQXVyMjMxOTE0ODA@._V1_SY1000_CR0,0,648,1000_AL_.jpg");
+    brooks_pool_create(&pool);
+    brooks_doc_create(&document, pool);
+    for (int i = 0; i < 1000; i++) {
+        brooks_doc_add_string(document, "snapshot_date", "Oct 23th, 2017");
+        brooks_doc_add_object(&source, document, "source");
+        brooks_doc_add_string(source, "site", "http://www.imdb.com/title/tt1396484/?ref_=nv_sr_1");
+        for (int j = 0; j < 100; j++) {
+            brooks_doc_add_array(&movies, document, brooks_type_object, "movies");
+            brooks_doc_array_add_object(&it, movies);
+            brooks_doc_add_string(it, "title", "It (2017)");
+            brooks_doc_add_array(&it_actors, it, brooks_type_object, "actors");
+            brooks_doc_array_add_object(&actors_skarsgard, it_actors);
+            brooks_doc_add_string(actors_skarsgard, "name", "Bill Skarsgård");
+            brooks_doc_add_string(actors_skarsgard, "role", "Pennywise");
+            brooks_doc_array_add_object(&actors_lieberher, it_actors);
+            brooks_doc_add_string(actors_lieberher, "name", "Jaeden Lieberher");
+            brooks_doc_add_string(actors_lieberher, "role", "Bill");
+        }
+    }
+    brooks_doc_add_array(&it_keywords, it, brooks_type_string, "keywords");
+    brooks_doc_add_value(it_keywords, "clown");
+    brooks_doc_add_value(it_keywords, "based on novel");
+    brooks_doc_add_value(it_keywords, "supernatural");
+    brooks_doc_add_value(it_keywords, "balloon");
+    brooks_doc_add_value(it_keywords, "fear");
+    brooks_doc_add_null(it, "poster_url");
+    brooks_doc_add_integer(it, "reviews", &(uint64_t) {928});
+    brooks_doc_add_decimal(it, "rating", &(double) {7.8});
+    brooks_doc_array_add_object(&jigsaw, movies);
+    brooks_doc_add_string(jigsaw, "title", "Jigsaw (2017)");
+    brooks_doc_add_array(&jigsaw_actors, jigsaw, brooks_type_object, "actors");
+    brooks_doc_array_add_object(&actors_bell, jigsaw_actors);
+    brooks_doc_add_string(actors_bell, "name", "Tobin Bell");
+    brooks_doc_add_string(actors_bell, "role", "John Kramer");
+    brooks_doc_array_add_object(&actors_passmore, jigsaw_actors);
+    brooks_doc_add_string(actors_passmore, "name", "Matt Passmore");
+    brooks_doc_add_string(actors_passmore, "role", "Logan Nelson");
+    brooks_doc_add_array(&jigsaw_keywords, jigsaw, brooks_type_string, "keywords");
+    brooks_doc_add_value(jigsaw_keywords, "copycat killer");
+    brooks_doc_add_value(jigsaw_keywords, "one word title");
+    brooks_doc_add_value(jigsaw_keywords, "cop");
+    brooks_doc_add_value(jigsaw_keywords, "murder investigation");
+    brooks_doc_add_string(jigsaw, "poster_url",
+                            "https://images-na.ssl-images-amazon.com/images/M/MV5BNmRiZDM4ZmMtOTVjMi00YTNlLTkyNjMtMjI2OTAxNjgwMWM1XkEyXkFqcGdeQXVyMjMxOTE0ODA@._V1_SY1000_CR0,0,648,1000_AL_.jpg");
 
     printf("JSON printed:\n\t");
-    xjson_json_print(stdout, document);
-
-    xjson_query_t *query;
-    xjson_query_start(&query, pool, document, NULL, pred_objects_or_arrays_only);
-    xjson_query_print(stdout, query);
+    brooks_doc_print(stdout, document);
+    fprintf(stdout, "\n\n\n");
 
 
+    brooks_operator_t scan_object, scan_array;
+
+    brooks_operators_scan_objects_create(&scan_object, &document, 1, pool);
+    brooks_operator_open(&scan_object);
+    const brooks_cursor_t *cursor_object, *cursor_array;
+
+    while ((cursor_object = brooks_operator_next(&scan_object)) != NULL) {
+        size_t num_elements;
+        brooks_value_t **base = brooks_cursor_read(&num_elements, cursor_object);
+        while (num_elements--) {
+            brooks_doc_value_print(stdout, *base);
+            fprintf(stdout, "\n");
+
+            brooks_type_e type;
+            if (brooks_doc_value_get_type(&type, *base) && (type == brooks_type_array)) {
+                brooks_array_t *array = brooks_doc_value_as_array(*base);
+                brooks_operators_scan_arrays_create(&scan_array, &array, 1, pool);
+                brooks_operator_open(&scan_array);
+                while ((cursor_array = brooks_operator_next(&scan_array)) != NULL) {
+                    size_t num_elements;
+                    brooks_value_t **base = brooks_cursor_read(&num_elements, cursor_array);
+                    while (num_elements--) {
+                        fprintf(stdout, "\t");
+                        brooks_doc_value_print(stdout, *base);
+                        fprintf(stdout, "\n");
+                    }
+                }
+            }
+
+            base++;
+        }
+    }
 
 
 
 
-    xjson_pool_dispose(pool);
+
+    brooks_operator_close(&scan_object);
+
+    //brooks_query_t *query;
+    //brooks_result_t *result;
+    //xjson_query_start(&query, pool, document, NULL, pred_objects_or_arrays_only);
+    //xjson_query_print(stdout, query);
+
+   // brooks_query_create(&query, pool);
+   // brooks_query_execute(&result, pool, query, document, brooks_traversal_breadth_first);
+  //  brooks_result_print(stdout, result);
+
+
+    brooks_pool_dispose(pool);
 
 
 }

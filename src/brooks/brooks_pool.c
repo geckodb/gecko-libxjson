@@ -15,34 +15,60 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_MISC_H
-#define XJSON_MISC_H
-
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <xjson/xjson.h>
-#include <xjson/xjson-pool.h>
+#include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <brooks/brooks.h>
+#include <brooks/brooks_pool.h>
+#include <brooks/brooks_misc.h>
 
 // ---------------------------------------------------------------------------------------------------------------------
-// I N T E R F A C E   D E C L A R A T I O N
+// T Y P E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-void *xjson_misc_pooled_autoresize(xjson_pool_t *pool, void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries,
-                                   xjson_u64_t *capacity);
+typedef struct brooks_pool_t
+{
+    void **base;
+    size_t num_elements;
+    size_t capacity;
+} brooks_pool_t;
 
-void *xjson_misc_autoresize(void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries, xjson_u64_t *capacity);
+// ---------------------------------------------------------------------------------------------------------------------
+// I N T E R F A C E   I M P L E M E N T A T I O N
+// ---------------------------------------------------------------------------------------------------------------------
 
-char *xjson_misc_strdup(xjson_pool_t *pool, const char *str);
-
-#ifdef __cplusplus
+brooks_status_e brooks_pool_create(brooks_pool_t **pool)
+{
+    brooks_pool_t *retval;
+    if ((retval = malloc(sizeof(brooks_pool_t))) != NULL) {
+        retval->capacity = BROOKS_POOL_CAPACITY;
+        retval->base = malloc(retval->capacity * sizeof(void *));
+        retval->num_elements = 0;
+        *pool = retval;
+        return ((retval->base != NULL) ? brooks_status_ok : brooks_status_malloc_err);
+    }
+    return brooks_status_malloc_err;
 }
-#endif
 
+brooks_status_e brooks_pool_dispose(brooks_pool_t *pool)
+{
+    void **it = pool->base;
+    while (pool->num_elements--) {
+        free(*it);
+        it++;
+    }
+    free(pool->base);
+    free(pool);
+    return brooks_status_malloc_err;
+}
 
-#endif //XJSON_MISC_H
+void *brooks_pool_malloc(brooks_pool_t *pool, size_t size)
+{
+    void *retval = malloc(size);
+    pool->base = brooks_misc_autoresize(pool->base, sizeof(void *), pool->num_elements, &pool->capacity, 1);
+    pool->base[pool->num_elements++] = retval;
+    return retval;
+}

@@ -1,0 +1,25 @@
+Goal: data generator for JSON files that generates scaled files according some input parameters. For better usage,
+      pre-define set of input parameters (classes)
+
+(1) Prob having a i-level node with a certain shape (e.g., root object has 4 properties of certain type)
+    -> histogram on key-names, property types, and property values
+    -> histogram on how many of these objects are at level i
+(2) Prob having an arbitrary node in a neested level with a certain shape (e.g., node in array in object in object)
+    -> Prob. that such an object exists (which decreases to deeper it gets)
+        -> apply (1)
+(3) Input file to define these values, JSON formatted ;)
+(4) Output file ("synopsis.json") based on set of input JSON files
+(*) Show that generated file synposis.json from one specific input file is similar to input file in terms of
+    -> (a) synopsis
+    -> (b) performance implied by system (use MongoDB)
+(5) Build repository on JSON files (GitHub etc.)
+(6) Define classes of JSON file usage types (data dump, configuration file,...)
+(7) Classify (5) such that each class in (6) gets a certain amount of realworld representatives
+    -> run classifier (PHP tool?) such that multiple persons annotate a certain file as class of (6)
+    -> chance that two persons classify wrongly decreases with increasing number of persons (or better classes)
+    -> increase number of persons such that classification gets significant
+(8) Run (4) on each class
+    -> report class and properties
+(9) Evaluate different classes:
+    -> run document database queries on these classes to show DIFFERENCES in classes affect query performance/memory usage/utilization
+    -> scale per-class instances to show HOW DIFFERENT PARAMETERS PER CLASS affect query performance/memory usage/utilization

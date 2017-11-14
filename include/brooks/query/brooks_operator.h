@@ -15,62 +15,57 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_POOL_H
-#define XJSON_POOL_H
+#ifndef XJSON_OPERATOR_H
+#define XJSON_OPERATOR_H
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <xjson/xjson.h>
+#include <brooks/brooks.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// C O N F I G
-// ---------------------------------------------------------------------------------------------------------------------
-
-#ifndef XJSON_POOL_CAPACITY
-    #define XJSON_POOL_CAPACITY                        1500
-#endif
-
-// ---------------------------------------------------------------------------------------------------------------------
 // F O R W A R D   D E C L A R A T I O N S
 // ---------------------------------------------------------------------------------------------------------------------
 
-typedef struct xjson_object_t         xjson_object_t;
-
-typedef struct xjson_array_t          xjson_array_t;
-
-typedef struct xjson_unnamed_entry_t  xjson_unnamed_entry_t;
-
-typedef struct xjson_named_entry_t    xjson_named_entry_t;
-
-typedef struct xjson_element_t        xjson_element_t;
-
-typedef struct xjson_value_t          xjson_value_t;
+typedef struct brooks_object_t   brooks_object_t;
+typedef struct brooks_array_t    brooks_array_t;
+typedef struct brooks_cursor_t   brooks_cursor_t;
 
 // ---------------------------------------------------------------------------------------------------------------------
-// T Y P E   D E C L A R A T I O N S
+// T Y P E   D E F I N I T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-typedef struct xjson_pool_t           xjson_pool_t;
+typedef enum brooks_opp_tag_e {
+    brooks_opp_tag_scan_objects_default,
+    brooks_opp_tag_scan_arrays_default
+} brooks_opp_tag_e;
+
+typedef struct brooks_operator_t
+{
+    brooks_status_e        (*open)(struct brooks_operator_t *self);
+    brooks_status_e        (*close)(struct brooks_operator_t *self);
+    const brooks_cursor_t *(*next)(struct brooks_operator_t *self);
+    brooks_opp_tag_e         tag;
+    void                    *extra;
+} brooks_operator_t;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-xjson_status_e xjson_pool_create(xjson_pool_t **pool);
+brooks_status_e brooks_operator_open(brooks_operator_t *opp);
 
-xjson_status_e xjson_pool_dispose(xjson_pool_t *pool);
+const brooks_cursor_t *brooks_operator_next(brooks_operator_t *opp);
 
-void *xjson_pool_malloc(xjson_pool_t *pool, xjson_u64_t size);
-
+brooks_status_e brooks_operator_close(brooks_operator_t *opp);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //XJSON_POOL_H
+#endif //XJSON_OPERATOR_H

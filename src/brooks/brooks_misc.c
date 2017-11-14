@@ -15,62 +15,48 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_H
-#define XJSON_H
-
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// ---------------------------------------------------------------------------------------------------------------------
-// C O N S T A N T S
-// ---------------------------------------------------------------------------------------------------------------------
-
-#define XJSON_ROOT                   NULL
-
-#ifdef __cplusplus
-}
-#endif
+#include <brooks/brooks_misc.h>
 
 // ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
+// I N T E R F A C E   I M P L E M E N T A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-typedef enum
+void *brooks_misc_pooled_autoresize(brooks_pool_t *pool, void *base, size_t elem_size, size_t num_entries,
+                                    size_t *capacity, size_t num_add)
 {
-    xjson_status_ok             = 1,
-    xjson_status_true           = 1,
-    xjson_status_false          = 0,
-    xjson_status_failed         = 0,
-    xjson_status_malloc_err,
-    xjson_status_pmalloc_err,
-    xjson_status_realloc_err,
-    xjson_status_nullptr        = 2,
-    xjson_status_notype,
-    xjson_status_interalerr,
-    xjson_status_wrongusage,
-    xjson_status_nopool,
-    xjson_status_eof            = 0
-}                                     xjson_status_e;
-
-typedef long long                     xjson_s64_t;
-
-typedef unsigned long long            xjson_u64_t;
-
-typedef double                        xjson_double_t;
-
-typedef char *                        xjson_string_t;
-
-typedef int                           xjson_boolean_t;
-
-#ifdef __cplusplus
+    size_t new_num_entires = num_entries + num_add;
+    if (new_num_entires > *capacity) {
+        while (new_num_entires >= *capacity) {
+            *capacity = (*capacity + 1) * 1.7f;
+        }
+    }
+    void *result = brooks_pool_malloc(pool, *capacity * elem_size);
+    memcpy(result, base, num_entries * elem_size);
+    return result;
 }
-#endif
 
-#endif //XJSON_H
+void *brooks_misc_autoresize(void *base, size_t elem_size, size_t num_entries, size_t *capacity, size_t num_add)
+{
+    size_t new_num_entires = num_entries + num_add;
+    if (new_num_entires > *capacity) {
+        while (new_num_entires > *capacity) {
+            *capacity = (*capacity + 1) * 1.7f;
+        }
+        return realloc(base, *capacity * elem_size);
+    } else return base;
+}
+
+char *brooks_misc_strdup(brooks_pool_t *pool, const char *str)
+{
+    char *cpy = brooks_pool_malloc(pool, strlen(str) + 1);
+    strcpy(cpy, str);
+    return cpy;
+}
+

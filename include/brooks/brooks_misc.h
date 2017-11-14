@@ -15,50 +15,34 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef XJSON_QUERY_H
-#define XJSON_QUERY_H
+#ifndef BROOKS_MISC_H
+#define BROOKS_MISC_H
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <stdio.h>
-#include "xjson.h"
+#include <brooks/brooks.h>
+#include <brooks/brooks_pool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// F O R W A R D   D E C L A R A T I O N S
-// ---------------------------------------------------------------------------------------------------------------------
-
-typedef struct xjson_object_t           xjson_object_t;
-
-typedef struct xjson_query_t            xjson_query_t;
-
-typedef struct xjson_pool_t             xjson_pool_t;
-
-typedef struct xjson_element_t          xjson_element_t;
-
-// ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
-// ---------------------------------------------------------------------------------------------------------------------
-
-typedef xjson_boolean_t (*xjson_pred_t)(void *capture, const xjson_element_t *element);
-
-// ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   D E C L A R A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-xjson_status_e xjson_query_start(xjson_query_t **query, xjson_pool_t *pool, xjson_object_t *root,
-                                 void *capture, xjson_pred_t pred);
+void *brooks_misc_pooled_autoresize(brooks_pool_t *pool, void *base, size_t elem_size, size_t num_entries,
+                                    size_t *capacity, size_t num_add);
 
-xjson_status_e xjson_query_print(FILE *file, const xjson_query_t *query);
+void *brooks_misc_autoresize(void *base, size_t elem_size, size_t num_entries, size_t *capacity, size_t num_add);
 
+char *brooks_misc_strdup(brooks_pool_t *pool, const char *str);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //XJSON_QUERY_H
+
+#endif //BROOKS_MISC_H

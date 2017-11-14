@@ -19,41 +19,23 @@
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <xjson/xjson-misc.h>
+#include <brooks/query/brooks_operator.h>
 
 // ---------------------------------------------------------------------------------------------------------------------
 // I N T E R F A C E   I M P L E M E N T A T I O N
 // ---------------------------------------------------------------------------------------------------------------------
 
-void *xjson_misc_pooled_autoresize(xjson_pool_t *pool, void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries,
-                                   xjson_u64_t *capacity)
+brooks_status_e brooks_operator_open(brooks_operator_t *opp)
 {
-    xjson_u64_t new_num_entires = *num_entries + 1;
-    while (new_num_entires >= *capacity) {
-        *capacity = (*capacity + 1) * 1.7f;
-    }
-
-    void *result = xjson_pool_malloc(pool, *capacity * elem_size);
-    memcpy(result, base, *num_entries * elem_size);
-    return result;
+    return (opp? opp->open(opp) : brooks_status_nullptr);
 }
 
-void *xjson_misc_autoresize(void *base, xjson_u64_t elem_size, xjson_u64_t *num_entries, xjson_u64_t *capacity)
+const brooks_cursor_t *brooks_operator_next(brooks_operator_t *opp)
 {
-    xjson_u64_t new_num_entires = *num_entries + 1;
-    while (new_num_entires >= *capacity) {
-        *capacity = (*capacity + 1) * 1.7f;
-    }
-    return realloc(base, *capacity * *capacity);
+    return (opp? opp->next(opp) : NULL);
 }
 
-char *xjson_misc_strdup(xjson_pool_t *pool, const char *str)
+brooks_status_e brooks_operator_close(brooks_operator_t *opp)
 {
-    char *cpy = xjson_pool_malloc(pool, strlen(str) + 1);
-    strcpy(cpy, str);
-    return cpy;
+    return (opp? opp->close(opp) : brooks_status_nullptr);
 }
-

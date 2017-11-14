@@ -15,59 +15,35 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#include <brooks/brooks.h>
+#include <brooks/query/brooks_operator.h>
+
+#ifndef SCAN_ARRAYS_H
+#define SCAN_ARRAYS_H
+
 // ---------------------------------------------------------------------------------------------------------------------
 // I N C L U D E S
 // ---------------------------------------------------------------------------------------------------------------------
 
-#include <stdlib.h>
-
-#include <xjson/xjson-pool.h>
-#include <xjson/xjson-misc.h>
-
-// ---------------------------------------------------------------------------------------------------------------------
-// T Y P E S
-// ---------------------------------------------------------------------------------------------------------------------
-
-typedef struct xjson_pool_t
-{
-    void **base;
-    xjson_u64_t num_elements;
-    xjson_u64_t capacity;
-} xjson_pool_t;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// I N T E R F A C E   I M P L E M E N T A T I O N
+// F O R W A R D   D E C L A R A T I O N S
 // ---------------------------------------------------------------------------------------------------------------------
 
-xjson_status_e xjson_pool_create(xjson_pool_t **pool)
-{
-    xjson_pool_t *retval;
-    if ((retval = malloc(sizeof(xjson_pool_t))) != NULL) {
-        retval->capacity = XJSON_POOL_CAPACITY;
-        retval->base = malloc(retval->capacity * sizeof(void *));
-        retval->num_elements = 0;
-        *pool = retval;
-        return ((retval->base != NULL) ? xjson_status_ok : xjson_status_malloc_err);
-    }
-    return xjson_status_malloc_err;
+typedef struct brooks_pool_t brooks_pool_t;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// I N T E R F A C E   D E C L A R A T I O N
+// ---------------------------------------------------------------------------------------------------------------------
+
+brooks_status_e brooks_operators_scan_arrays_create(brooks_operator_t *opp, brooks_array_t ** arrs, size_t num,
+                                                    brooks_pool_t *pool);
+
+#ifdef __cplusplus
 }
+#endif
 
-xjson_status_e xjson_pool_dispose(xjson_pool_t *pool)
-{
-    void **it = pool->base;
-    while (pool->num_elements--) {
-        free(*it);
-        it++;
-    }
-    free(pool->base);
-    free(pool);
-    return xjson_status_malloc_err;
-}
-
-void *xjson_pool_malloc(xjson_pool_t *pool, xjson_u64_t size)
-{
-    void *retval = malloc(size);
-    pool->base = xjson_misc_autoresize(pool->base, sizeof(void *), &pool->num_elements, &pool->capacity);
-    pool->base[pool->num_elements++] = retval;
-    return retval;
-}
+#endif //SCAN_ARRAYS_H
