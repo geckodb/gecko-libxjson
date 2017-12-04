@@ -74,12 +74,12 @@ typedef struct brooks_filter_t
     xjson_u64_t num_elements_all;
     brooks_element_t **all = xjson_json_fullscan(&num_elements_all, root);
     brooks_query_t *retval = brooks_pool_malloc(pool, sizeof(brooks_query_t));
-    retval->num_keys = 0;
+    retval->num_elements_data_list = 0;
     retval->elements = brooks_pool_malloc(pool, num_elements_all * sizeof(brooks_element_t *));
     for (xjson_u64_t i = 0; i < num_elements_all; i++) {
         brooks_element_t *element = all[i];
         if (pred(capture, all[i])) {
-            retval->elements[retval->num_keys++] = element;
+            retval->elements[retval->num_elements_data_list++] = element;
         }
     }
     *query = retval;
@@ -120,11 +120,11 @@ brooks_status_e brooks_query_execute(brooks_result_t **result, brooks_pool_t *po
         brooks_element_t *element = all[i];
         //if (pred(capture, all[i])) {
         retval->data.base = brooks_misc_autoresize(retval->data.base, retval->data.element_size,
-                                                   &retval->data.element_size, &retval->data.key_capacity);
-      //  memcpy(retval->data.base + (retval->data.num_keys++ * retval->data.element_size),
+                                                   &retval->data.element_size, &retval->data.capacity_data_list);
+      //  memcpy(retval->data.base + (retval->data.num_elements_data_list++ * retval->data.element_size),
     //           element, sizeof());
 
-         //   retval->elements[retval->num_keys++] = element;
+         //   retval->elements[retval->num_elements_data_list++] = element;
         //}
     }
     *result = retval;*/

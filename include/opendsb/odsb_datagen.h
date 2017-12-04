@@ -125,78 +125,159 @@ static inline odsb_table_t *odbs_table_by_prop(const odsb_prop_gen_params_t *par
     return result;
 }
 
-typedef struct odsb_key_histogram_t
+typedef struct odsb_histogram_t
 {
-    char **keys;
-    unsigned num_keys;
-    unsigned key_capacity;
+    void **data_list;
+    unsigned num_elements_data_list;
+    unsigned capacity_data_list;
     unsigned *histogram;
     unsigned hist_capacity;
     unsigned num_hist_entries;
-} odsb_key_histogram_t;
+} odsb_histogram_t;
 
-static inline odsb_key_histogram_t *odsb_key_histogram_new(size_t key_capacity)
+static inline odsb_histogram_t *odsb_histogram_new(size_t key_capacity)
 {
-    odsb_key_histogram_t *result = malloc(sizeof(odsb_key_histogram_t));
-    result->keys = malloc(key_capacity * sizeof(char *));
+    odsb_histogram_t *result = malloc(sizeof(odsb_histogram_t));
+    result->data_list = malloc(key_capacity * sizeof(void *));
     result->histogram = malloc(key_capacity * sizeof(unsigned));
-    result->num_keys = result->num_hist_entries = 0;
-    result->key_capacity = result->hist_capacity = key_capacity;
+    result->num_elements_data_list = result->num_hist_entries = 0;
+    result->capacity_data_list = result->hist_capacity = key_capacity;
     return result;
 }
 
-static inline void odsb_key_histogram_add(odsb_key_histogram_t *hist, const char *key, unsigned nums)
+static inline void odsb_generic_histogram_add(odsb_histogram_t *hist, const void *data, size_t data_sizeof, size_t num_data, unsigned nums)
 {
-    if (hist->num_keys + 1 > hist->key_capacity) {
-        hist->key_capacity = (hist->key_capacity) * 2;
-        hist->keys = realloc(hist->keys, hist->key_capacity * sizeof(char *));
+    if (hist->num_elements_data_list + 1 > hist->capacity_data_list) {
+        hist->capacity_data_list = (hist->capacity_data_list) * 2;
+        hist->data_list = realloc(hist->data_list, hist->capacity_data_list * sizeof(char *));
     }
     if (hist->num_hist_entries + nums > hist->hist_capacity) {
         hist->hist_capacity = (hist->hist_capacity + nums + 1) * 2;
         hist->histogram = realloc(hist->histogram, hist->hist_capacity * sizeof(unsigned));
     }
-    hist->keys[hist->num_keys] = strdup(key);
+    void *data_entry = malloc(num_data * data_sizeof);
+    memcpy(data_entry, data, num_data * data_sizeof);
+    hist->data_list[hist->num_elements_data_list] = data_entry;
     while (nums--) {
-        hist->histogram[hist->num_hist_entries++] = hist->num_keys;
+        hist->histogram[hist->num_hist_entries++] = hist->num_elements_data_list;
     }
-    hist->num_keys++;
+    hist->num_elements_data_list++;
 }
 
-static inline const char *odsb_key_histogram_random(const odsb_key_histogram_t *hist)
+static inline void odsb_histogram_key_add(odsb_histogram_t *hist, const char *key, unsigned nums)
 {
-    return hist->keys[hist->histogram[odsb_random(hist->num_hist_entries)]];
+    odsb_generic_histogram_add(hist, key, sizeof(char), strlen(key) + 1, nums);
+}
+
+static inline void odsb_histogram_value_int_add(odsb_histogram_t *hist, uint64_t number, unsigned nums)
+{
+    odsb_generic_histogram_add(hist, &number, sizeof(uint64_t), 1, nums);
+}
+
+static inline void odsb_histogram_value_double_add(odsb_histogram_t *hist, double number, unsigned nums)
+{
+    odsb_generic_histogram_add(hist, &number, sizeof(double), 1, nums);
+}
+
+static inline void odsb_histogram_value_boolean_add(odsb_histogram_t *hist, bool value, unsigned nums)
+{
+    odsb_generic_histogram_add(hist, &value, sizeof(bool), 1, nums);
+}
+
+static inline void odsb_histogram_value_string_add(odsb_histogram_t *hist, const char *value, unsigned nums)
+{
+    odsb_generic_histogram_add(hist, value, sizeof(char), strlen(value) + 1, nums);
+}
+
+static inline void odsb_histogram_value_array_add(odsb_histogram_t *hist, const brooks_array_t *value, unsigned nums)
+{
+    odsb_generic_histogram_add(hist, &value, sizeof(brooks_array_t*), 1, nums);
+}
+
+static inline void odsb_histogram_value_object_add(odsb_histogram_t *hist, const brooks_object_t *value, unsigned nums)
+{
+    odsb_generic_histogram_add(hist, &value, sizeof(brooks_object_t*), 1, nums);
+}
+
+static inline const void *odsb_histogram_random(const odsb_histogram_t *hist)
+{
+    return hist->data_list[hist->histogram[odsb_random(hist->num_hist_entries)]];
 }
 
 typedef struct odsb_key_gen_params_t
 {
-    odsb_key_histogram_t *val_int;
-    odsb_key_histogram_t *val_boolean;
-    odsb_key_histogram_t *val_decimal;
-    odsb_key_histogram_t *val_string;
+    odsb_histogram_t *val_int;
+    odsb_histogram_t *val_boolean;
+    odsb_histogram_t *val_decimal;
+    odsb_histogram_t *val_string;
 
-    odsb_key_histogram_t *array_int;
-    odsb_key_histogram_t *array_boolean;
-    odsb_key_histogram_t *array_decimal;
-    odsb_key_histogram_t *array_string;
-    odsb_key_histogram_t *array_array;
-    odsb_key_histogram_t *array_object;
+    odsb_histogram_t *array_int;
+    odsb_histogram_t *array_boolean;
+    odsb_histogram_t *array_decimal;
+    odsb_histogram_t *array_string;
+    odsb_histogram_t *array_array;
+    odsb_histogram_t *array_object;
 
-    odsb_key_histogram_t *object;
+    odsb_histogram_t *object;
 } odsb_key_gen_params_t;
 
-static inline odsb_key_gen_params_t *odsb_key_gen_new(odsb_key_histogram_t *val_int,
-                                                      odsb_key_histogram_t *val_boolean,
-                                                      odsb_key_histogram_t *val_decimal,
-                                                      odsb_key_histogram_t *val_string,
-                                                      odsb_key_histogram_t *array_int,
-                                                      odsb_key_histogram_t *array_boolean,
-                                                      odsb_key_histogram_t *array_decimal,
-                                                      odsb_key_histogram_t *array_string,
-                                                      odsb_key_histogram_t *array_array,
-                                                      odsb_key_histogram_t *array_object,
-                                                      odsb_key_histogram_t *object)
+static inline odsb_key_gen_params_t *odsb_key_gen_new(odsb_histogram_t *val_int,
+                                                      odsb_histogram_t *val_boolean,
+                                                      odsb_histogram_t *val_decimal,
+                                                      odsb_histogram_t *val_string,
+                                                      odsb_histogram_t *array_int,
+                                                      odsb_histogram_t *array_boolean,
+                                                      odsb_histogram_t *array_decimal,
+                                                      odsb_histogram_t *array_string,
+                                                      odsb_histogram_t *array_array,
+                                                      odsb_histogram_t *array_object,
+                                                      odsb_histogram_t *object)
 {
     odsb_key_gen_params_t *result = malloc(sizeof(odsb_key_gen_params_t));
+    result->val_int = val_int;
+    result->val_boolean = val_boolean;
+    result->val_decimal = val_decimal;
+    result->val_string = val_string;
+    result->array_int = array_int;
+    result->array_boolean = array_boolean;
+    result->array_decimal = array_decimal;
+    result->array_string = array_string;
+    result->array_array = array_array;
+    result->array_object = array_object;
+    result->object = object;
+    return result;
+}
+
+typedef struct odsb_value_gen_params_t
+{
+    odsb_histogram_t *val_int;
+    odsb_histogram_t *val_boolean;
+    odsb_histogram_t *val_decimal;
+    odsb_histogram_t *val_string;
+
+    odsb_histogram_t *array_int;
+    odsb_histogram_t *array_boolean;
+    odsb_histogram_t *array_decimal;
+    odsb_histogram_t *array_string;
+    odsb_histogram_t *array_array;
+    odsb_histogram_t *array_object;
+
+    odsb_histogram_t *object;
+} odsb_value_gen_params_t;
+
+static inline odsb_value_gen_params_t *odsb_value_gen_new(odsb_histogram_t *val_int,
+                                                      odsb_histogram_t *val_boolean,
+                                                      odsb_histogram_t *val_decimal,
+                                                      odsb_histogram_t *val_string,
+                                                      odsb_histogram_t *array_int,
+                                                      odsb_histogram_t *array_boolean,
+                                                      odsb_histogram_t *array_decimal,
+                                                      odsb_histogram_t *array_string,
+                                                      odsb_histogram_t *array_array,
+                                                      odsb_histogram_t *array_object,
+                                                      odsb_histogram_t *object)
+{
+    odsb_value_gen_params_t *result = malloc(sizeof(odsb_value_gen_params_t));
     result->val_int = val_int;
     result->val_boolean = val_boolean;
     result->val_decimal = val_decimal;
@@ -214,17 +295,35 @@ static inline odsb_key_gen_params_t *odsb_key_gen_new(odsb_key_histogram_t *val_
 static inline const char *odsb_key_gen_random(odsb_key_gen_params_t *hist, odsb_prop_type_e type)
 {
     switch (type) {
-        case prop_type_integer:         return odsb_key_histogram_random(hist->val_int);
-        case prop_type_boolean:        return odsb_key_histogram_random(hist->val_boolean);
-        case prop_type_decimal:         return odsb_key_histogram_random(hist->val_decimal);
-        case prop_type_string:          return odsb_key_histogram_random(hist->val_string);
-        case prop_type_array_integer:   return odsb_key_histogram_random(hist->array_int);
-        case prop_type_array_boolean:   return odsb_key_histogram_random(hist->array_boolean);
-        case prpo_type_array_decimal:   return odsb_key_histogram_random(hist->array_decimal);
-        case prop_type_array_string:    return odsb_key_histogram_random(hist->array_string);
-        case prop_type_array_object:    return odsb_key_histogram_random(hist->array_object);
-        case prop_type_array_array:     return odsb_key_histogram_random(hist->array_array);
-        case prop_type_object:          return odsb_key_histogram_random(hist->object);
+        case prop_type_integer:         return odsb_histogram_random(hist->val_int);
+        case prop_type_boolean:        return odsb_histogram_random(hist->val_boolean);
+        case prop_type_decimal:         return odsb_histogram_random(hist->val_decimal);
+        case prop_type_string:          return odsb_histogram_random(hist->val_string);
+        case prop_type_array_integer:   return odsb_histogram_random(hist->array_int);
+        case prop_type_array_boolean:   return odsb_histogram_random(hist->array_boolean);
+        case prpo_type_array_decimal:   return odsb_histogram_random(hist->array_decimal);
+        case prop_type_array_string:    return odsb_histogram_random(hist->array_string);
+        case prop_type_array_object:    return odsb_histogram_random(hist->array_object);
+        case prop_type_array_array:     return odsb_histogram_random(hist->array_array);
+        case prop_type_object:          return odsb_histogram_random(hist->object);
+        default: abort();
+    }
+}
+
+static inline const void *odsb_value_gen_random(odsb_key_gen_params_t *hist, odsb_prop_type_e type)
+{
+    switch (type) {
+        case prop_type_integer:         return odsb_histogram_random(hist->val_int);
+        case prop_type_boolean:         return odsb_histogram_random(hist->val_boolean);
+        case prop_type_decimal:         return odsb_histogram_random(hist->val_decimal);
+        case prop_type_string:          return odsb_histogram_random(hist->val_string);
+        case prop_type_array_integer:   return odsb_histogram_random(hist->array_int);
+        case prop_type_array_boolean:   return odsb_histogram_random(hist->array_boolean);
+        case prpo_type_array_decimal:   return odsb_histogram_random(hist->array_decimal);
+        case prop_type_array_string:    return odsb_histogram_random(hist->array_string);
+        case prop_type_array_object:    return odsb_histogram_random(hist->array_object);
+        case prop_type_array_array:     return odsb_histogram_random(hist->array_array);
+        case prop_type_object:          return odsb_histogram_random(hist->object);
         default: abort();
     }
 }
