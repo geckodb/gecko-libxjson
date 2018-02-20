@@ -70,7 +70,7 @@ typedef struct brooks_value_t          brooks_value_t;
 
 brooks_status_e brooks_doc_create(brooks_object_t **doc, brooks_pool_t *pool);
 
-brooks_status_e brooks_doc_parse(brooks_object_t **doc, const char *text);
+brooks_status_e brooks_doc_parse(brooks_object_t **doc, brooks_pool_t *pool, const char *text);
 
 brooks_status_e brooks_doc_print(FILE *file, const brooks_object_t *json);
 

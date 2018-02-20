@@ -39,16 +39,16 @@ bool pred_objects_or_arrays_only(void *capture, const brooks_element_t *element)
 int main(int argc, char* argv[])
 {
     brooks_pool_t *pool;
-    brooks_object_t *document, *source, *it, *jigsaw, *actors_skarsgard, *actors_lieberher, *actors_bell, *actors_passmore;
+    brooks_object_t *document, *document2, *source, *it, *jigsaw, *actors_skarsgard, *actors_lieberher, *actors_bell, *actors_passmore;
     brooks_array_t *movies, *it_actors, *it_keywords, *jigsaw_actors, *jigsaw_keywords;
 
     brooks_pool_create(&pool);
     brooks_doc_create(&document, pool);
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1; i++) {
         brooks_doc_add_string(document, "snapshot_date", "Oct 23th, 2017");
         brooks_doc_add_object(&source, document, "source");
         brooks_doc_add_string(source, "site", "http://www.imdb.com/title/tt1396484/?ref_=nv_sr_1");
-        for (int j = 0; j < 100; j++) {
+        for (int j = 0; j < 2; j++) {
             brooks_doc_add_array(&movies, document, brooks_type_object, "movies");
             brooks_doc_array_add_object(&it, movies);
             brooks_doc_add_string(it, "title", "It (2017)");
@@ -91,7 +91,10 @@ int main(int argc, char* argv[])
     brooks_doc_print(stdout, document);
     fprintf(stdout, "\n\n\n");
 
+    const char *text = "{ \"snapshot_date\": \"Oct 23th, 2017\", \"source\": { \"site\": \"http://www.imdb.com/title/tt1396484/?ref_=nv_sr_1\" }, \"movies\": [ { \"title\": \"It (2017)\", \"actors\": [ { \"name\": \"Bill Skarsgård\", \"role\": \"Pennywise\" }, { \"name\": \"Jaeden Lieberher\", \"role\": \"Bill\" } ] } ], \"movies\": [ { \"title\": \"It (2017)\", \"actors\": [ { \"name\": \"Bill Skarsgård\", \"role\": \"Pennywise\" }, { \"name\": \"Jaeden Lieberher\", \"role\": \"Bill\" } ], \"keywords\": [ \"clown\", \"based on novel\", \"supernatural\", \"balloon\", \"fear\" ], \"poster_url\": null, \"reviews\": 928, \"rating\": 7.800000 }, { \"title\": \"Jigsaw (2017)\", \"actors\": [ { \"name\": \"Tobin Bell\", \"role\": \"John Kramer\" }, { \"name\": \"Matt Passmore\", \"role\": \"Logan Nelson\" } ], \"keywords\": [ \"copycat killer\", \"one word title\", \"cop\", \"murder investigation\" ], \"poster_url\": \"https://images-na.ssl-images-amazon.com/images/M/MV5BNmRiZDM4ZmMtOTVjMi00YTNlLTkyNjMtMjI2OTAxNjgwMWM1XkEyXkFqcGdeQXVyMjMxOTE0ODA@._V1_SY1000_CR0,0,648,1000_AL_.jpg\" } ] }";
+    brooks_doc_parse(document2, text);
 
+/*
     brooks_operator_t scan_object, scan_array;
 
     brooks_operators_scan_objects_create(&scan_object, &document, 1, pool);
@@ -130,7 +133,7 @@ int main(int argc, char* argv[])
 
 
     brooks_operator_close(&scan_object);
-
+*/
     //brooks_query_t *query;
     //brooks_result_t *result;
     //xjson_query_start(&query, pool, document, NULL, pred_objects_or_arrays_only);

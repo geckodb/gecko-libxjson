@@ -20,6 +20,7 @@ find_package(Doxygen REQUIRED)
 
 include_directories(
     "include"
+    "third-party"
 )
 
 option(BUILD_DOCUMENTATION "API documentation requires Doxygen" ${DOXYGEN_FOUND})
@@ -35,7 +36,8 @@ set(SOURCE_FILES
         include/brooks/brooks_pool.h
         src/brooks/brooks_pool.c
         include/brooks/brooks_misc.h
-        src/brooks/brooks_misc.c include/brooks/query/brooks_operator.h include/brooks/query/brooks_cursor.h src/brooks/query/brooks_cursor.c src/brooks/query/brooks_operator.c include/brooks/query/operators/scans/brooks_scan_objects.h include/brooks/query/operators/scans/brooks_scan_arrays.h include/brooks/query/operators/scans/brooks_scan_strings.h src/brooks/query/operators/scans/brooks_scan_objects.c src/brooks/query/operators/scans/brooks_scan_array.c include/opendsb/odsb_datagen.h )
+        src/brooks/brooks_misc.c include/brooks/query/brooks_operator.h include/brooks/query/brooks_cursor.h src/brooks/query/brooks_cursor.c src/brooks/query/brooks_operator.c include/brooks/query/operators/scans/brooks_scan_objects.h include/brooks/query/operators/scans/brooks_scan_arrays.h include/brooks/query/operators/scans/brooks_scan_strings.h src/brooks/query/operators/scans/brooks_scan_objects.c src/brooks/query/operators/scans/brooks_scan_array.c include/opendsb/odsb_datagen.h
+        third-party/json-parser/json.c third-party/json-parser/json.h)
 
 
 add_executable(

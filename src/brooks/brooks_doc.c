@@ -27,6 +27,8 @@
 #include <brooks/brooks_misc.h>
 #include <math.h>
 
+#include <json-parser/json.h>
+
 // ---------------------------------------------------------------------------------------------------------------------
 // T Y P E S
 // ---------------------------------------------------------------------------------------------------------------------
@@ -125,10 +127,92 @@ brooks_status_e brooks_doc_create(brooks_object_t **json, brooks_pool_t *pool)
     return (*json != NULL ? brooks_status_ok : (pool != NULL ? brooks_status_failed : brooks_status_nopool));
 }
 
-brooks_status_e brooks_doc_parse(brooks_object_t **json, const char *text)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static void process_value(json_value* value, int depth, brooks_object_t *obj);
+
+static void process_object(json_value* value, int depth, brooks_object_t *obj)
 {
-    // TODO:...
-    return brooks_status_interalerr;
+    int length, x;
+    if (value == NULL) {
+        return;
+    }
+    length = value->u.object.length;
+    for (x = 0; x < length; x++) {
+        printf("object[%d].name = %s\n", x, value->u.object.values[x].name);
+        process_value(value->u.object.values[x].value, depth+1);
+    }
+}
+
+static void process_array(json_value* value, int depth, brooks_object_t *obj)
+{
+    int length, x;
+    if (value == NULL) {
+        return;
+    }
+    length = value->u.array.length;
+    printf("array\n");
+    for (x = 0; x < length; x++) {
+        process_value(value->u.array.values[x], depth);
+    }
+}
+
+static void process_value(json_value* value, int depth, brooks_object_t *obj)
+{
+    int j;
+    if (value == NULL) {
+        return;
+    }
+    switch (value->type) {
+        case json_object:
+            process_object(value, depth + 1, obj);
+            break;
+        case json_array:
+            process_array(value, depth + 1, obj);
+            break;
+        case json_integer:
+            printf("int: %10" PRId64 "\n", value->u.integer);
+
+            break;
+        case json_double:
+            printf("double: %f\n", value->u.dbl);
+            break;
+        case json_string:
+            printf("string: %s\n", value->u.string.ptr);
+            break;
+        case json_boolean:
+            printf("bool: %d\n", value->u.boolean);
+            break;
+    }
+}
+
+
+
+
+brooks_status_e brooks_doc_parse(brooks_object_t **doc, brooks_pool_t *pool, const char *text)
+{
+    json_value *value;
+    if (brooks_doc_create(doc, pool) == brooks_status_ok) {
+        if ((value = json_parse(text, strlen(text))) == NULL) {
+            perror("Unable to parse data\n");
+            return brooks_status_failed;
+        } else {
+            process_value(value, 0, doc);
+            return brooks_status_ok;
+        }
+    } else return brooks_status_interalerr;
 }
 
 brooks_status_e brooks_doc_print(FILE *file, const brooks_object_t *json)
